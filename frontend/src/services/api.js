@@ -1,14 +1,18 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
+// 🔥 Force correct backend URL (no env issues)
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: "http://localhost:5000/api",
 });
+
+// 🧪 Debug log to confirm frontend uses correct URL
+console.log("✅ Axios Base URL:", api.defaults.baseURL);
 
 // Add token to every request if it exists
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  console.log("🚀 Sending request to:", config.baseURL + config.url); // debug request URL
+
+  const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -19,12 +23,14 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // If token is invalid or expired, clear it and redirect to login
+    console.error("❌ API ERROR:", error?.response?.status, error?.config?.url);
+
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
     }
+
     return Promise.reject(error);
   }
 );
